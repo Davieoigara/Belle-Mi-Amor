@@ -10,30 +10,39 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; }
-        .bg-custom {
-            background-image: url('belle.jpg.jpeg');
-            background-size: cover;
-            background-position: center;
-        }
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background: black; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useRef } = React;
+        const { useState, useRef, useEffect } = React;
         const { motion, AnimatePresence } = window.Motion;
 
         function ValentinePage() {
             const [answered, setAnswered] = useState(false);
             const [noPosition, setNoPosition] = useState({ x: 0, y: 0 });
             const [yesScale, setYesScale] = useState(1);
+            const [currentPhoto, setCurrentPhoto] = useState(0);
             const audioRef = useRef(null);
+
+            // Your exact filenames from GitHub
+            const photos = [
+                '1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg', 'belle.jpg.jpeg'
+            ];
+
+            // 2-second slideshow timer
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    setCurrentPhoto((prev) => (prev + 1) % photos.length);
+                }, 2000); 
+                return () => clearInterval(interval);
+            }, [photos.length]);
 
             const startMusic = () => {
                 if (audioRef.current && audioRef.current.paused) {
-                    audioRef.current.play().catch(e => console.log("Playback interaction required"));
+                    audioRef.current.play().catch(() => {});
                 }
             };
 
@@ -42,37 +51,82 @@
                 const randomX = Math.floor(Math.random() * 200 - 100);
                 const randomY = Math.floor(Math.random() * 200 - 100);
                 setNoPosition({ x: randomX, y: randomY });
-                setYesScale(prev => prev + 0.2); // Makes Yes button bigger
+                setYesScale(prev => prev + 0.25); 
             };
 
             const handleYesClick = () => {
                 startMusic();
                 setAnswered(true);
-                // Notification via email
-                window.location.href = "mailto:majanimanuel@gmail.com?subject=She Said Yes! ❤️&body=Belle said YES to being my Valentine! ❤️";
             };
 
             return (
-                <div className="min-h-screen bg-custom flex items-center justify-center p-6 relative">
-                    {/* Mariah Carey - Always Be My Baby */}
-                   <audio ref={audioRef} loop>
-    <source src="Alwaysbemybaby.mp3" type="audio/mpeg" />
-</audio>
+                <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+                    {/* Background Slideshow */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={photos[currentPhoto]}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1 }}
+                            className="absolute inset-0 bg-cover bg-center"
+                            style={{ backgroundImage: `url('${photos[currentPhoto]}')` }}
+                        />
+                    </AnimatePresence>
 
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+                    {/* Audio File */}
+                    <audio ref={audioRef} loop>
+                        <source src="Alwaysbemybaby.mp3" type="audio/mpeg" />
+                    </audio>
 
-                    <div className="relative z-10 w-full max-w-xl bg-white/90 p-10 rounded-3xl shadow-2xl text-center border-none">
+                    {/* Dark overlay to make text pop */}
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
+
+                    {/* Heart Rain Effect - Only appears after "Yes" */}
+                    {answered && (
+                        <div className="fixed inset-0 pointer-events-none z-20">
+                            {[...Array(30)].map((_, i) => (
+                                <motion.span 
+                                    key={i} 
+                                    initial={{ 
+                                        y: -50, 
+                                        x: `${Math.random() * 100}vw`, 
+                                        opacity: 0,
+                                        scale: Math.random() * 0.5 + 0.5 
+                                    }} 
+                                    animate={{ 
+                                        y: '110vh', 
+                                        opacity: [0, 1, 1, 0],
+                                        rotate: [0, 45, -45, 0]
+                                    }} 
+                                    transition={{ 
+                                        repeat: Infinity, 
+                                        duration: Math.random() * 3 + 2, 
+                                        delay: Math.random() * 2 
+                                    }}
+                                    className="absolute text-red-500 text-3xl"
+                                >
+                                    ❤️
+                                </motion.span>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Main Content Box */}
+                    <div className="relative z-10 w-full max-w-xl bg-white/60 backdrop-blur-md p-10 rounded-3xl shadow-2xl text-center border border-white/30">
                         {!answered ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                <h1 className="text-5xl font-extrabold text-red-600 mb-2">Belle ❤️</h1>
-                                <p className="text-xl text-gray-800 italic mb-6">"You'll always be a part of me..."</p>
-                                <h2 className="text-2xl font-bold text-gray-900 mb-8">Will You Be My Valentine?</h2>
+                            <>
+                                <motion.h1 initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="text-4xl md:text-5xl font-extrabold text-red-600 drop-shadow-md">
+                                    Belle ❤️
+                                </motion.h1>
+                                <p className="text-xl mt-4 text-gray-900 italic font-semibold">"Always be my baby..."</p>
+                                <p className="text-2xl mt-4 font-bold text-black leading-tight">Will You Be My Valentine?</p>
 
-                                <div className="flex justify-center items-center gap-12 mt-4">
+                                <div className="flex flex-wrap justify-center items-center gap-10 mt-10">
                                     <motion.button 
                                         style={{ scale: yesScale }}
                                         onClick={handleYesClick}
-                                        className="bg-red-600 hover:bg-red-700 text-white px-10 py-4 rounded-full text-xl font-bold shadow-xl transition-colors">
+                                        className="bg-red-600 text-white px-10 py-4 rounded-full text-xl font-bold shadow-2xl hover:bg-red-700 transition-colors">
                                         Yes! 🌹
                                     </motion.button>
 
@@ -80,25 +134,25 @@
                                         animate={{ x: noPosition.x, y: noPosition.y }}
                                         onMouseEnter={moveNoButton}
                                         onTouchStart={moveNoButton}
-                                        className="border-2 border-gray-400 px-8 py-4 rounded-full text-xl text-gray-700 bg-transparent">
+                                        className="border-2 border-gray-600 px-8 py-3 rounded-full text-xl text-black font-semibold bg-white/40">
                                         No
                                     </motion.button>
                                 </div>
-                            </motion.div>
+                            </>
                         ) : (
-                            <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="py-10">
-                                <h2 className="text-5xl font-black text-red-600 mb-4">She Said YES! ❤️</h2>
-                                <p className="text-2xl text-gray-700 italic">"Always be my baby..."</p>
-                                <div className="mt-8 flex justify-center gap-4">
-                                    {[...Array(20)].map((_, i) => (
-                                        <motion.div 
-                                            key={i}
-                                            animate={{ y: [0, -20, 0] }}
-                                            transition={{ repeat: Infinity, duration: 1, delay: i * 0.1 }}
-                                            className="text-3xl">❤️</motion.div>
-                                    ))}
-                                </div>
-                            </motion.div>
+                            <div className="py-10 space-y-6">
+                                <motion.h2 
+                                    initial={{ scale: 0 }} 
+                                    animate={{ scale: 1 }} 
+                                    transition={{ type: "spring", stiffness: 200 }} 
+                                    className="text-5xl font-black text-red-600 drop-shadow-lg"
+                                >
+                                    She Said YES! ❤️
+                                </motion.h2>
+                                <p className="text-2xl text-black italic font-bold">
+                                    "I'm part of you indefinitely..."
+                                </p>
+                            </div>
                         )}
                     </div>
                 </div>
