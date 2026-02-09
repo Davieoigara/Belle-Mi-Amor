@@ -11,6 +11,17 @@
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <style>
         body { margin: 0; overflow: hidden; font-family: sans-serif; background: black; }
+        .collage-photo {
+            width: 180px;
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            border: 6px solid white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        @media (max-width: 640px) {
+            .collage-photo { width: 100px; height: 130px; border-width: 3px; }
+        }
     </style>
 </head>
 <body>
@@ -18,27 +29,21 @@
 
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
-        const { motion, AnimatePresence } = window.Motion;
+        const { motion } = window.Motion;
 
         function ValentinePage() {
             const [answered, setAnswered] = useState(false);
             const [noPosition, setNoPosition] = useState({ x: 0, y: 0 });
             const [yesScale, setYesScale] = useState(1);
-            const [currentPhoto, setCurrentPhoto] = useState(0);
             const audioRef = useRef(null);
 
-            // Your exact filenames from GitHub
+            // Every filename in your repository
             const photos = [
-                '1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg', 'belle.jpg.jpeg'
+                '1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg', 
+                '6.jpeg', '7.jpeg', '8.jpeg', '9.jpeg', '10.jpeg', 
+                '11.jpeg', '12.jpeg', '13.jpeg', '14.jpeg', '15.jpeg', 
+                '16.jpeg', 'belle.jpg.jpeg'
             ];
-
-            // 2-second slideshow timer
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    setCurrentPhoto((prev) => (prev + 1) % photos.length);
-                }, 2000); 
-                return () => clearInterval(interval);
-            }, [photos.length]);
 
             const startMusic = () => {
                 if (audioRef.current && audioRef.current.paused) {
@@ -51,7 +56,7 @@
                 const randomX = Math.floor(Math.random() * 200 - 100);
                 const randomY = Math.floor(Math.random() * 200 - 100);
                 setNoPosition({ x: randomX, y: randomY });
-                setYesScale(prev => prev + 0.25); 
+                setYesScale(prev => prev + 0.3); 
             };
 
             const handleYesClick = () => {
@@ -60,50 +65,51 @@
             };
 
             return (
-                <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-                    {/* Background Slideshow */}
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={photos[currentPhoto]}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 1 }}
-                            className="absolute inset-0 bg-cover bg-center"
-                            style={{ backgroundImage: `url('${photos[currentPhoto]}')` }}
-                        />
-                    </AnimatePresence>
+                <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gray-900">
+                    
+                    {/* Floating Collage Background */}
+                    <div className="absolute inset-0 z-0">
+                        {photos.map((photo, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ 
+                                    opacity: 0.5, 
+                                    scale: 1,
+                                    y: [0, Math.random() * 30 - 15, 0],
+                                    rotate: [Math.random() * 10 - 5, Math.random() * -10 + 5] 
+                                }}
+                                transition={{ 
+                                    duration: 6, 
+                                    repeat: Infinity, 
+                                    delay: i * 0.1 
+                                }}
+                                className="absolute collage-photo"
+                                style={{
+                                    backgroundImage: `url('${photo}')`,
+                                    left: `${(i % 5) * 20 + (Math.random() * 10 - 5)}%`,
+                                    top: `${Math.floor(i / 5) * 25 + (Math.random() * 10 - 5)}%`,
+                                }}
+                            />
+                        ))}
+                    </div>
 
-                    {/* Audio File */}
                     <audio ref={audioRef} loop>
                         <source src="Alwaysbemybaby.mp3" type="audio/mpeg" />
                     </audio>
 
-                    {/* Dark overlay to make text pop */}
-                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] z-1" />
 
-                    {/* Heart Rain Effect - Only appears after "Yes" */}
+                    {/* Celebration Hearts */}
                     {answered && (
-                        <div className="fixed inset-0 pointer-events-none z-20">
+                        <div className="fixed inset-0 pointer-events-none z-30">
                             {[...Array(30)].map((_, i) => (
                                 <motion.span 
                                     key={i} 
-                                    initial={{ 
-                                        y: -50, 
-                                        x: `${Math.random() * 100}vw`, 
-                                        opacity: 0,
-                                        scale: Math.random() * 0.5 + 0.5 
-                                    }} 
-                                    animate={{ 
-                                        y: '110vh', 
-                                        opacity: [0, 1, 1, 0],
-                                        rotate: [0, 45, -45, 0]
-                                    }} 
-                                    transition={{ 
-                                        repeat: Infinity, 
-                                        duration: Math.random() * 3 + 2, 
-                                        delay: Math.random() * 2 
-                                    }}
+                                    initial={{ y: -50, x: `${Math.random() * 100}vw`, opacity: 0 }} 
+                                    animate={{ y: '110vh', opacity: [0, 1, 1, 0], rotate: 360 }} 
+                                    transition={{ repeat: Infinity, duration: Math.random() * 3 + 2, delay: Math.random() * 2 }}
                                     className="absolute text-red-500 text-3xl"
                                 >
                                     ❤️
@@ -112,21 +118,21 @@
                         </div>
                     )}
 
-                    {/* Main Content Box */}
-                    <div className="relative z-10 w-full max-w-xl bg-white/60 backdrop-blur-md p-10 rounded-3xl shadow-2xl text-center border border-white/30">
+                    {/* Glass Content Box */}
+                    <div className="relative z-20 w-full max-w-xl bg-white/70 backdrop-blur-lg p-8 md:p-12 rounded-3xl shadow-2xl text-center border border-white/40">
                         {!answered ? (
                             <>
-                                <motion.h1 initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="text-4xl md:text-5xl font-extrabold text-red-600 drop-shadow-md">
+                                <motion.h1 initial={{ y: -20 }} animate={{ y: 0 }} className="text-4xl md:text-5xl font-extrabold text-red-600 drop-shadow-sm">
                                     Belle ❤️
                                 </motion.h1>
-                                <p className="text-xl mt-4 text-gray-900 italic font-semibold">"Always be my baby..."</p>
-                                <p className="text-2xl mt-4 font-bold text-black leading-tight">Will You Be My Valentine?</p>
+                                <p className="text-lg md:text-xl mt-4 text-gray-800 italic font-semibold">"Always be my baby..."</p>
+                                <h2 className="text-2xl md:text-3xl mt-6 font-bold text-black">Will You Be My Valentine?</h2>
 
-                                <div className="flex flex-wrap justify-center items-center gap-10 mt-10">
+                                <div className="flex flex-col md:flex-row justify-center items-center gap-8 mt-10">
                                     <motion.button 
                                         style={{ scale: yesScale }}
                                         onClick={handleYesClick}
-                                        className="bg-red-600 text-white px-10 py-4 rounded-full text-xl font-bold shadow-2xl hover:bg-red-700 transition-colors">
+                                        className="bg-red-600 text-white px-12 py-4 rounded-full text-2xl font-bold shadow-2xl hover:bg-red-700 transition-all">
                                         Yes! 🌹
                                     </motion.button>
 
@@ -134,25 +140,20 @@
                                         animate={{ x: noPosition.x, y: noPosition.y }}
                                         onMouseEnter={moveNoButton}
                                         onTouchStart={moveNoButton}
-                                        className="border-2 border-gray-600 px-8 py-3 rounded-full text-xl text-black font-semibold bg-white/40">
+                                        className="border-2 border-gray-600 px-8 py-3 rounded-full text-xl text-black font-semibold bg-white/30">
                                         No
                                     </motion.button>
                                 </div>
                             </>
                         ) : (
-                            <div className="py-10 space-y-6">
-                                <motion.h2 
-                                    initial={{ scale: 0 }} 
-                                    animate={{ scale: 1 }} 
-                                    transition={{ type: "spring", stiffness: 200 }} 
-                                    className="text-5xl font-black text-red-600 drop-shadow-lg"
-                                >
-                                    She Said YES! ❤️
-                                </motion.h2>
-                                <p className="text-2xl text-black italic font-bold">
+                            <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} className="py-10">
+                                <h2 className="text-5xl md:text-6xl font-black text-red-600 drop-shadow-lg mb-6">
+                                    YES! ❤️
+                                </h2>
+                                <p className="text-2xl text-gray-900 font-bold italic">
                                     "I'm part of you indefinitely..."
                                 </p>
-                            </div>
+                            </motion.div>
                         )}
                     </div>
                 </div>
